@@ -1,0 +1,812 @@
+[
+  {
+    "id": "MED-PCM-500",
+    "name": "Paracetamol 500mg Tablets",
+    "category": "Antipyretic",
+    "base_burn_rate": 45.0,
+    "unit": "strips",
+    "reorder_level": 200,
+    "min_stock": 100
+  },
+  {
+    "id": "MED-PCM-650",
+    "name": "Paracetamol 650mg Tablets",
+    "category": "Antipyretic",
+    "base_burn_rate": 25.0,
+    "unit": "strips",
+    "reorder_level": 150,
+    "min_stock": 75
+  },
+  {
+    "id": "MED-IBU-400",
+    "name": "Ibuprofen 400mg Tablets",
+    "category": "NSAID",
+    "base_burn_rate": 18.0,
+    "unit": "strips",
+    "reorder_level": 100,
+    "min_stock": 50
+  },
+  {
+    "id": "MED-DIC-50",
+    "name": "Diclofenac 50mg Tablets",
+    "category": "NSAID",
+    "base_burn_rate": 12.0,
+    "unit": "strips",
+    "reorder_level": 80,
+    "min_stock": 40
+  },
+  {
+    "id": "MED-AMX-500",
+    "name": "Amoxicillin 500mg Capsules",
+    "category": "Antibiotic",
+    "base_burn_rate": 22.0,
+    "unit": "strips",
+    "reorder_level": 120,
+    "min_stock": 60
+  },
+  {
+    "id": "MED-AZI-500",
+    "name": "Azithromycin 500mg Tablets",
+    "category": "Antibiotic",
+    "base_burn_rate": 14.0,
+    "unit": "strips",
+    "reorder_level": 80,
+    "min_stock": 40
+  },
+  {
+    "id": "MED-DOX-100",
+    "name": "Doxycycline 100mg Capsules",
+    "category": "Antibiotic-Dengue",
+    "base_burn_rate": 38.0,
+    "unit": "strips",
+    "reorder_level": 200,
+    "min_stock": 80
+  },
+  {
+    "id": "MED-CIP-500",
+    "name": "Ciprofloxacin 500mg Tablets",
+    "category": "Antibiotic",
+    "base_burn_rate": 16.0,
+    "unit": "strips",
+    "reorder_level": 90,
+    "min_stock": 45
+  },
+  {
+    "id": "MED-MET-400",
+    "name": "Metronidazole 400mg Tablets",
+    "category": "Antibiotic",
+    "base_burn_rate": 20.0,
+    "unit": "strips",
+    "reorder_level": 100,
+    "min_stock": 50
+  },
+  {
+    "id": "MED-ART-60",
+    "name": "Artesunate 60mg Injection",
+    "category": "Antimalarial",
+    "base_burn_rate": 5.5,
+    "unit": "vials",
+    "reorder_level": 30,
+    "min_stock": 15
+  },
+  {
+    "id": "MED-CHL-250",
+    "name": "Chloroquine 250mg Tablets",
+    "category": "Antimalarial",
+    "base_burn_rate": 8.0,
+    "unit": "strips",
+    "reorder_level": 50,
+    "min_stock": 25
+  },
+  {
+    "id": "MED-PRI-7.5",
+    "name": "Primaquine 7.5mg Tablets",
+    "category": "Antimalarial",
+    "base_burn_rate": 6.0,
+    "unit": "strips",
+    "reorder_level": 40,
+    "min_stock": 20
+  },
+  {
+    "id": "MED-IVF-NS",
+    "name": "Normal Saline 0.9% IV Infusion (500ml)",
+    "category": "IV Fluid",
+    "base_burn_rate": 22.0,
+    "unit": "bottles",
+    "reorder_level": 100,
+    "min_stock": 50
+  },
+  {
+    "id": "MED-IVF-RL",
+    "name": "Ringer's Lactate IV Infusion (500ml)",
+    "category": "IV Fluid",
+    "base_burn_rate": 18.0,
+    "unit": "bottles",
+    "reorder_level": 80,
+    "min_stock": 40
+  },
+  {
+    "id": "MED-IVF-D5",
+    "name": "Dextrose 5% IV Infusion (500ml)",
+    "category": "IV Fluid",
+    "base_burn_rate": 15.0,
+    "unit": "bottles",
+    "reorder_level": 70,
+    "min_stock": 35
+  },
+  {
+    "id": "MED-ORS-WHO",
+    "name": "Oral Rehydration Salts (WHO Formula)",
+    "category": "ORS",
+    "base_burn_rate": 32.0,
+    "unit": "sachets",
+    "reorder_level": 200,
+    "min_stock": 100
+  },
+  {
+    "id": "MED-ZIN-20",
+    "name": "Zinc Sulphate 20mg Tablets",
+    "category": "Micronutrient",
+    "base_burn_rate": 15.0,
+    "unit": "strips",
+    "reorder_level": 80,
+    "min_stock": 40
+  },
+  {
+    "id": "MED-VAC-RAB",
+    "name": "Rabies Vaccine Human (Rabipur)",
+    "category": "Vaccine",
+    "base_burn_rate": 2.5,
+    "unit": "vials",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-VAC-HEP",
+    "name": "Hepatitis B Vaccine (Engerix)",
+    "category": "Vaccine",
+    "base_burn_rate": 3.0,
+    "unit": "vials",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-VAC-PPD",
+    "name": "PPD Tuberculin Test (TST)",
+    "category": "Diagnostic",
+    "base_burn_rate": 4.0,
+    "unit": "vials",
+    "reorder_level": 25,
+    "min_stock": 12
+  },
+  {
+    "id": "MED-SAL-INH",
+    "name": "Salbutamol Inhaler 100mcg (200 doses)",
+    "category": "Bronchodilator",
+    "base_burn_rate": 4.0,
+    "unit": "units",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-BUD-INC",
+    "name": "Budesonide Respules 0.5mg",
+    "category": "Corticosteroid",
+    "base_burn_rate": 3.5,
+    "unit": "units",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-OXY-D",
+    "name": "Oxygen Cylinders Type D",
+    "category": "Medical Gas",
+    "base_burn_rate": 1.5,
+    "unit": "cylinders",
+    "reorder_level": 8,
+    "min_stock": 4
+  },
+  {
+    "id": "MED-ASP-75",
+    "name": "Aspirin 75mg Tablets",
+    "category": "Antiplatelet",
+    "base_burn_rate": 20.0,
+    "unit": "strips",
+    "reorder_level": 100,
+    "min_stock": 50
+  },
+  {
+    "id": "MED-ATR-25",
+    "name": "Atenolol 25mg Tablets",
+    "category": "Beta Blocker",
+    "base_burn_rate": 14.0,
+    "unit": "strips",
+    "reorder_level": 70,
+    "min_stock": 35
+  },
+  {
+    "id": "MED-AML-5",
+    "name": "Amlodipine 5mg Tablets",
+    "category": "Antihypertensive",
+    "base_burn_rate": 16.0,
+    "unit": "strips",
+    "reorder_level": 80,
+    "min_stock": 40
+  },
+  {
+    "id": "MED-ENP-5",
+    "name": "Enalapril 5mg Tablets",
+    "category": "ACE Inhibitor",
+    "base_burn_rate": 12.0,
+    "unit": "strips",
+    "reorder_level": 70,
+    "min_stock": 35
+  },
+  {
+    "id": "MED-MET-500",
+    "name": "Metformin 500mg Tablets",
+    "category": "Antidiabetic",
+    "base_burn_rate": 24.0,
+    "unit": "strips",
+    "reorder_level": 120,
+    "min_stock": 60
+  },
+  {
+    "id": "MED-GLC-5",
+    "name": "Glibenclamide 5mg Tablets",
+    "category": "Antidiabetic",
+    "base_burn_rate": 14.0,
+    "unit": "strips",
+    "reorder_level": 70,
+    "min_stock": 35
+  },
+  {
+    "id": "MED-INS-REG",
+    "name": "Insulin Regular Human 40IU/ml",
+    "category": "Antidiabetic",
+    "base_burn_rate": 3.0,
+    "unit": "vials",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-OXY-INJ",
+    "name": "Oxytocin 10IU Injection",
+    "category": "Oxytocic",
+    "base_burn_rate": 6.0,
+    "unit": "ampoules",
+    "reorder_level": 30,
+    "min_stock": 15
+  },
+  {
+    "id": "MED-FER-TAB",
+    "name": "Ferrous Sulphate 200mg Tablets",
+    "category": "Hematinic",
+    "base_burn_rate": 28.0,
+    "unit": "strips",
+    "reorder_level": 140,
+    "min_stock": 70
+  },
+  {
+    "id": "MED-FLO-400",
+    "name": "Folic Acid 400mcg Tablets",
+    "category": "Vitamin",
+    "base_burn_rate": 20.0,
+    "unit": "strips",
+    "reorder_level": 100,
+    "min_stock": 50
+  },
+  {
+    "id": "MED-CLO-CRE",
+    "name": "Clotrimazole 1% Cream 30g",
+    "category": "Antifungal",
+    "base_burn_rate": 5.0,
+    "unit": "tubes",
+    "reorder_level": 25,
+    "min_stock": 12
+  },
+  {
+    "id": "MED-FLU-150",
+    "name": "Fluconazole 150mg Capsule",
+    "category": "Antifungal",
+    "base_burn_rate": 4.0,
+    "unit": "strips",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-CLO-EYE",
+    "name": "Chloramphenicol Eye Drops 0.5%",
+    "category": "Ophthalmology",
+    "base_burn_rate": 3.0,
+    "unit": "bottles",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-TIM-EYE",
+    "name": "Timolol 0.5% Eye Drops",
+    "category": "Glaucoma",
+    "base_burn_rate": 2.0,
+    "unit": "bottles",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-DNG-NS1",
+    "name": "Dengue NS1 Antigen Rapid Kit",
+    "category": "Diagnostic",
+    "base_burn_rate": 8.0,
+    "unit": "kits",
+    "reorder_level": 40,
+    "min_stock": 20
+  },
+  {
+    "id": "MED-MAL-RDT",
+    "name": "Malaria RDT Kit (P.falciparum)",
+    "category": "Diagnostic",
+    "base_burn_rate": 6.0,
+    "unit": "kits",
+    "reorder_level": 30,
+    "min_stock": 15
+  },
+  {
+    "id": "MED-TYP-TEST",
+    "name": "Typhoid IgM/IgG Rapid Test",
+    "category": "Diagnostic",
+    "base_burn_rate": 4.0,
+    "unit": "kits",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-COV-RAT",
+    "name": "COVID-19 Antigen RAT Kit",
+    "category": "Diagnostic",
+    "base_burn_rate": 10.0,
+    "unit": "kits",
+    "reorder_level": 50,
+    "min_stock": 25
+  },
+  {
+    "id": "MED-HBS-TEST",
+    "name": "HBsAg Rapid Screening Test",
+    "category": "Diagnostic",
+    "base_burn_rate": 3.0,
+    "unit": "kits",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-POV-IOD",
+    "name": "Povidone Iodine 10% Solution 100ml",
+    "category": "Antiseptic",
+    "base_burn_rate": 5.0,
+    "unit": "bottles",
+    "reorder_level": 25,
+    "min_stock": 12
+  },
+  {
+    "id": "MED-BAN-CRE",
+    "name": "Bandage Crepe 15cm \u00d7 4m",
+    "category": "Surgical",
+    "base_burn_rate": 8.0,
+    "unit": "rolls",
+    "reorder_level": 40,
+    "min_stock": 20
+  },
+  {
+    "id": "MED-SYR-5ML",
+    "name": "Disposable Syringe 5ml (Box of 100)",
+    "category": "Consumable",
+    "base_burn_rate": 4.0,
+    "unit": "boxes",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-GLV-LAT",
+    "name": "Examination Gloves (Box of 100)",
+    "category": "PPE",
+    "base_burn_rate": 6.0,
+    "unit": "boxes",
+    "reorder_level": 30,
+    "min_stock": 15
+  },
+  {
+    "id": "MED-SRG-MSK",
+    "name": "Surgical Mask (Box of 50)",
+    "category": "PPE",
+    "base_burn_rate": 3.0,
+    "unit": "boxes",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-RIF-450",
+    "name": "Rifampicin 450mg Capsule",
+    "category": "Anti-TB",
+    "base_burn_rate": 4.0,
+    "unit": "strips",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-INH-300",
+    "name": "Isoniazid 300mg Tablet",
+    "category": "Anti-TB",
+    "base_burn_rate": 4.0,
+    "unit": "strips",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-ETH-800",
+    "name": "Ethambutol 800mg Tablet",
+    "category": "Anti-TB",
+    "base_burn_rate": 3.0,
+    "unit": "strips",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-PHE-100",
+    "name": "Phenobarbitone 100mg Tablet",
+    "category": "Antiepileptic",
+    "base_burn_rate": 5.0,
+    "unit": "strips",
+    "reorder_level": 25,
+    "min_stock": 12
+  },
+  {
+    "id": "MED-PHE-INJ",
+    "name": "Phenytoin 100mg Injection",
+    "category": "Antiepileptic",
+    "base_burn_rate": 2.0,
+    "unit": "ampoules",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-VIT-B12",
+    "name": "Vitamin B12 1000mcg Injection",
+    "category": "Vitamin",
+    "base_burn_rate": 3.0,
+    "unit": "ampoules",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-VIT-D3",
+    "name": "Vitamin D3 60,000 IU Granules",
+    "category": "Vitamin",
+    "base_burn_rate": 6.0,
+    "unit": "sachets",
+    "reorder_level": 30,
+    "min_stock": 15
+  },
+  {
+    "id": "MED-CAL-500",
+    "name": "Calcium Carbonate 500mg + D3",
+    "category": "Supplement",
+    "base_burn_rate": 12.0,
+    "unit": "strips",
+    "reorder_level": 60,
+    "min_stock": 30
+  },
+  {
+    "id": "MED-LOP-2",
+    "name": "Loperamide 2mg Capsule",
+    "category": "Antidiarrheal",
+    "base_burn_rate": 10.0,
+    "unit": "strips",
+    "reorder_level": 50,
+    "min_stock": 25
+  },
+  {
+    "id": "MED-ONS-4",
+    "name": "Ondansetron 4mg Tablet",
+    "category": "Antiemetic",
+    "base_burn_rate": 8.0,
+    "unit": "strips",
+    "reorder_level": 40,
+    "min_stock": 20
+  },
+  {
+    "id": "MED-DOM-10",
+    "name": "Domperidone 10mg Tablet",
+    "category": "Prokinetic",
+    "base_burn_rate": 9.0,
+    "unit": "strips",
+    "reorder_level": 45,
+    "min_stock": 22
+  },
+  {
+    "id": "MED-PAN-40",
+    "name": "Pantoprazole 40mg Tablet",
+    "category": "PPI",
+    "base_burn_rate": 15.0,
+    "unit": "strips",
+    "reorder_level": 75,
+    "min_stock": 38
+  },
+  {
+    "id": "MED-CMT-10",
+    "name": "Cetirizine 10mg Tablet",
+    "category": "Antihistamine",
+    "base_burn_rate": 14.0,
+    "unit": "strips",
+    "reorder_level": 70,
+    "min_stock": 35
+  },
+  {
+    "id": "MED-CLO-10",
+    "name": "Chlorpheniramine 10mg Injection",
+    "category": "Antihistamine",
+    "base_burn_rate": 3.0,
+    "unit": "ampoules",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-DEX-5",
+    "name": "Dexamethasone 5mg/ml Injection",
+    "category": "Steroid",
+    "base_burn_rate": 4.0,
+    "unit": "ampoules",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-HYD-100",
+    "name": "Hydrocortisone 100mg Injection",
+    "category": "Steroid",
+    "base_burn_rate": 3.0,
+    "unit": "vials",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-EPI-1",
+    "name": "Epinephrine/Adrenaline 1mg Injection",
+    "category": "Emergency",
+    "base_burn_rate": 1.0,
+    "unit": "ampoules",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-ATR-INJ",
+    "name": "Atropine 0.6mg Injection",
+    "category": "Emergency",
+    "base_burn_rate": 1.0,
+    "unit": "ampoules",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-DIG-0.25",
+    "name": "Digoxin 0.25mg Tablet",
+    "category": "Cardiac",
+    "base_burn_rate": 6.0,
+    "unit": "strips",
+    "reorder_level": 30,
+    "min_stock": 15
+  },
+  {
+    "id": "MED-FRO-40",
+    "name": "Furosemide 40mg Tablet",
+    "category": "Diuretic",
+    "base_burn_rate": 8.0,
+    "unit": "strips",
+    "reorder_level": 40,
+    "min_stock": 20
+  },
+  {
+    "id": "MED-SPR-25",
+    "name": "Spironolactone 25mg Tablet",
+    "category": "Diuretic",
+    "base_burn_rate": 5.0,
+    "unit": "strips",
+    "reorder_level": 25,
+    "min_stock": 12
+  },
+  {
+    "id": "MED-TET-EYE",
+    "name": "Tetracycline Eye Ointment 1%",
+    "category": "Ophthalmology",
+    "base_burn_rate": 2.0,
+    "unit": "tubes",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-ATM-250",
+    "name": "Artemether 80mg + Lumefantrine Tablet",
+    "category": "Antimalarial",
+    "base_burn_rate": 7.0,
+    "unit": "strips",
+    "reorder_level": 35,
+    "min_stock": 18
+  },
+  {
+    "id": "MED-AMB-250",
+    "name": "Ampicillin 250mg Injection",
+    "category": "Antibiotic",
+    "base_burn_rate": 8.0,
+    "unit": "vials",
+    "reorder_level": 40,
+    "min_stock": 20
+  },
+  {
+    "id": "MED-GEN-80",
+    "name": "Gentamicin 80mg Injection",
+    "category": "Antibiotic",
+    "base_burn_rate": 5.0,
+    "unit": "vials",
+    "reorder_level": 25,
+    "min_stock": 12
+  },
+  {
+    "id": "MED-CEF-1G",
+    "name": "Ceftriaxone 1g Injection",
+    "category": "Antibiotic",
+    "base_burn_rate": 6.0,
+    "unit": "vials",
+    "reorder_level": 30,
+    "min_stock": 15
+  },
+  {
+    "id": "MED-NEO-SYR",
+    "name": "Neomycin + Polymyxin Ear Drops",
+    "category": "ENT",
+    "base_burn_rate": 2.5,
+    "unit": "bottles",
+    "reorder_level": 12,
+    "min_stock": 6
+  },
+  {
+    "id": "MED-NIF-10",
+    "name": "Nifedipine 10mg Tablet",
+    "category": "Antihypertensive",
+    "base_burn_rate": 10.0,
+    "unit": "strips",
+    "reorder_level": 50,
+    "min_stock": 25
+  },
+  {
+    "id": "MED-ALB-400",
+    "name": "Albendazole 400mg Tablet",
+    "category": "Anthelmintic",
+    "base_burn_rate": 4.0,
+    "unit": "strips",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-MEB-100",
+    "name": "Mebendazole 100mg Tablet",
+    "category": "Anthelmintic",
+    "base_burn_rate": 5.0,
+    "unit": "strips",
+    "reorder_level": 25,
+    "min_stock": 12
+  },
+  {
+    "id": "MED-IVE-6",
+    "name": "Ivermectin 6mg Tablet",
+    "category": "Anthelmintic",
+    "base_burn_rate": 3.0,
+    "unit": "strips",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-MIS-200",
+    "name": "Misoprostol 200mcg Tablet",
+    "category": "Obstetric",
+    "base_burn_rate": 4.0,
+    "unit": "strips",
+    "reorder_level": 20,
+    "min_stock": 10
+  },
+  {
+    "id": "MED-TRN-500",
+    "name": "Tranexamic Acid 500mg Injection",
+    "category": "Haemostatic",
+    "base_burn_rate": 2.5,
+    "unit": "ampoules",
+    "reorder_level": 12,
+    "min_stock": 6
+  },
+  {
+    "id": "MED-SOD-INJ",
+    "name": "Sodium Bicarbonate 8.4% 10ml Injection",
+    "category": "Electrolyte",
+    "base_burn_rate": 2.0,
+    "unit": "ampoules",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-POT-INJ",
+    "name": "Potassium Chloride 15% Concentrate",
+    "category": "Electrolyte",
+    "base_burn_rate": 2.0,
+    "unit": "ampoules",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-MAG-INJ",
+    "name": "Magnesium Sulphate 50% Injection",
+    "category": "Eclampsia",
+    "base_burn_rate": 1.5,
+    "unit": "ampoules",
+    "reorder_level": 8,
+    "min_stock": 4
+  },
+  {
+    "id": "MED-CAL-INJ",
+    "name": "Calcium Gluconate 10% Injection",
+    "category": "Emergency",
+    "base_burn_rate": 2.0,
+    "unit": "ampoules",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-LOC-INJ",
+    "name": "Lignocaine 2% Injection 30ml",
+    "category": "Local Anaesthetic",
+    "base_burn_rate": 3.0,
+    "unit": "vials",
+    "reorder_level": 15,
+    "min_stock": 8
+  },
+  {
+    "id": "MED-KET-INJ",
+    "name": "Ketamine 500mg/10ml Injection",
+    "category": "Anaesthetic",
+    "base_burn_rate": 1.0,
+    "unit": "vials",
+    "reorder_level": 6,
+    "min_stock": 3
+  },
+  {
+    "id": "MED-DIA-INJ",
+    "name": "Diazepam 5mg/ml Injection",
+    "category": "Anxiolytic",
+    "base_burn_rate": 2.0,
+    "unit": "ampoules",
+    "reorder_level": 10,
+    "min_stock": 5
+  },
+  {
+    "id": "MED-MOR-INJ",
+    "name": "Morphine 10mg Injection",
+    "category": "Opioid Analgesic",
+    "base_burn_rate": 1.5,
+    "unit": "ampoules",
+    "reorder_level": 8,
+    "min_stock": 4
+  },
+  {
+    "id": "MED-HAL-5",
+    "name": "Haloperidol 5mg Tablet",
+    "category": "Antipsychotic",
+    "base_burn_rate": 2.5,
+    "unit": "strips",
+    "reorder_level": 12,
+    "min_stock": 6
+  },
+  {
+    "id": "MED-CHL-25",
+    "name": "Chlorpromazine 25mg Tablet",
+    "category": "Antipsychotic",
+    "base_burn_rate": 2.0,
+    "unit": "strips",
+    "reorder_level": 10,
+    "min_stock": 5
+  }
+]
