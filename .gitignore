@@ -65,6 +65,8 @@ tech_stack.md
 tracks.md
 gcp_backend_deployment_guide.md
 vertex_gemini_enterprise_guide.md
+vercel_frontend_deployment_guide.md
+project_overview/
 
 # ─── ML Artifacts (large binary files — store in GCS/DVC instead) ────────────
 backend/ml/artifacts/*.pkl
