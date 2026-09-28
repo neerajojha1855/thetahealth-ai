@@ -22,9 +22,9 @@ export function SettingsPage() {
             <div className="flex items-center gap-2">
               <Badge variant="ai" className="gap-1 px-2.5 py-0.5">
                 <Sparkles className="h-3 w-3 text-cyan-400" />
-                Phase 2 · Security & RBAC Governance
+                Security & RBAC Governance
               </Badge>
-              <Badge variant="success">Firebase Auth Active</Badge>
+              <Badge variant="success">Active</Badge>
             </div>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
@@ -82,20 +82,20 @@ export function SettingsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Security Tokens & Engine
+              
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="text-sm font-semibold text-white flex items-center gap-1.5">
               <KeyRound className="h-4 w-4 text-emerald-400" />
-              Firebase Admin SDK
+              
             </div>
             <p className="text-xs text-slate-400">
-              Project: <span className="font-mono text-slate-300">thetahealth001</span>
+               <span className="font-mono text-slate-300"></span>
             </p>
             <div className="flex items-center gap-2 pt-1">
-              <Badge variant="secondary" className="text-[10px]">FastAPI Depends()</Badge>
-              <Badge variant="secondary" className="text-[10px]">Audit Logged</Badge>
+              <Badge variant="secondary" className="text-[10px]"></Badge>
+              <Badge variant="secondary" className="text-[10px]"></Badge>
             </div>
           </CardContent>
         </Card>

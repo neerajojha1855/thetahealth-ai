@@ -38,7 +38,6 @@ export function Header() {
         {/* Real-time sync badge */}
         <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-300">
           <Radio className="h-3 w-3 text-emerald-400 animate-pulse" />
-          <span className="text-[11px] text-slate-400">Firestore Sync:</span>
           <span className="text-[11px] text-emerald-400 font-medium">Live</span>
         </div>
 

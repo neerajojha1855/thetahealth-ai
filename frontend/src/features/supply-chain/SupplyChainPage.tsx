@@ -46,9 +46,9 @@ export function SupplyChainPage() {
             <div className="flex items-center gap-2">
               <Badge variant="ai" className="gap-1 px-2.5 py-0.5">
                 <Sparkles className="h-3 w-3 text-cyan-400" />
-                Phase 11 & 12 · Supply Chain Control Tower & Resource Exchange
+                Supply Chain Control Tower & Resource Exchange
               </Badge>
-              <Badge variant="success">AI Multi-Tier Redistribution Active</Badge>
+              <Badge variant="success">Active</Badge>
             </div>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">

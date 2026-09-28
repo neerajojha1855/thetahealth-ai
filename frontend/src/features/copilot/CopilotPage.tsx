@@ -19,7 +19,7 @@ import {
 import { copilotService } from "@/services/copilotService"
 import { ChatMessage, CopilotQueryResponse } from "@/types/copilot"
 import { Link } from "react-router-dom"
-
+import ReactMarkdown from "react-markdown"
 const QUICK_PROMPTS = [
   "Summarize Dengue outbreak surge status in Ernakulam",
   "Which facilities face imminent stockouts in the next 5 days?",
@@ -143,7 +143,7 @@ export function CopilotPage() {
               </span>
             </h1>
             <p className="text-xs text-slate-400">
-              Zero-hallucination decision support grounded in live Firestore, BigQuery & Vertex AI
+              Zero-hallucination decision support system
             </p>
           </div>
         </div>
@@ -180,8 +180,8 @@ export function CopilotPage() {
                   : "bg-slate-900/80 border border-slate-800 text-slate-200 rounded-tl-none backdrop-blur-md shadow-lg space-y-3"
               }`}>
                 {/* Text Content */}
-                <div className="whitespace-pre-wrap leading-relaxed">
-                  {msg.text}
+                <div className="prose prose-invert prose-sm whitespace-pre-wrap leading-relaxed max-w-none">
+                  <ReactMarkdown>{msg.text}</ReactMarkdown>
                 </div>
 
                 {/* Grounding Citations */}

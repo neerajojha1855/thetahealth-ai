@@ -370,7 +370,7 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
                   className="rounded border-[#1E293B] bg-[#0E1726] text-cyan-500 focus:ring-0"
                 />
                 <label htmlFor="remember" className="text-xs text-slate-400 select-none">
-                  Remember this workstation for 30 days
+                  Remember me
                 </label>
               </div>
 

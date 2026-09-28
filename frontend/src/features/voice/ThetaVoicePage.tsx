@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { voiceService } from "@/services/voiceService"
 import { ParsedReportResponse, VoiceCommitResult } from "@/types/voice"
 import { Badge } from "@/components/ui/badge"
@@ -60,10 +60,12 @@ export function ThetaVoicePage() {
   const [isCommitting, setIsCommitting] = useState(false)
   const [commitResult, setCommitResult] = useState<VoiceCommitResult | null>(null)
   const [clarificationChoice, setClarificationChoice] = useState<string | null>(null)
+  const recognitionRef = useRef<any>(null)
 
   const handleStartRecording = () => {
     setIsRecording(true)
     setCommitResult(null)
+    setTranscript("")
 
     // Check for browser Speech Recognition API
     const SpeechRecognition =
@@ -71,18 +73,27 @@ export function ThetaVoicePage() {
 
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition()
+      recognitionRef.current = recognition
       recognition.lang = "en-IN"
-      recognition.continuous = false
-      recognition.interimResults = false
+      recognition.continuous = true
+      recognition.interimResults = true
+
+      let finalTranscript = ""
 
       recognition.onresult = (event: any) => {
-        const text = event.results[0][0].transcript
-        setTranscript(text)
-        setIsRecording(false)
-        handleParse(text)
+        let interimTranscript = ""
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript + " "
+          } else {
+            interimTranscript += event.results[i][0].transcript
+          }
+        }
+        setTranscript(finalTranscript + interimTranscript)
       }
 
-      recognition.onerror = () => {
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error)
         setIsRecording(false)
       }
 
@@ -100,6 +111,13 @@ export function ThetaVoicePage() {
         handleParse(fallbackText)
       }, 2500)
     }
+  }
+
+  const handleStopRecording = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop()
+    }
+    setIsRecording(false)
   }
 
   const handleParse = async (textToParse?: string) => {
@@ -159,7 +177,7 @@ export function ThetaVoicePage() {
             <div className="flex items-center gap-2">
               <Badge variant="ai" className="gap-1 px-2.5 py-0.5">
                 <Sparkles className="h-3 w-3 text-cyan-400" />
-                Phase 6 & 7 · Theta Voice & Gemini Extraction
+                Theta Voice & Gemini Extraction
               </Badge>
               <Badge variant="success">Zero Complex Forms</Badge>
             </div>
@@ -196,7 +214,7 @@ export function ThetaVoicePage() {
               </>
             )}
             <button
-              onClick={isRecording ? () => setIsRecording(false) : handleStartRecording}
+              onClick={isRecording ? handleStopRecording : handleStartRecording}
               className={cn(
                 "relative z-10 h-20 w-20 rounded-full flex items-center justify-center transition-all shadow-2xl active:scale-95",
                 isRecording
@@ -229,7 +247,7 @@ export function ThetaVoicePage() {
               className="h-10 text-xs gap-1.5 px-4"
             >
               <Sparkles className="h-3.5 w-3.5" />
-              {isParsing ? "Extracting..." : "Parse with Gemini"}
+              {isParsing ? "Extracting..." : "Parse with AI"}
             </Button>
           </div>
 

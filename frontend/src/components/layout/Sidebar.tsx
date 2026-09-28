@@ -188,7 +188,7 @@ export function Sidebar() {
             <span>Operational Integrity</span>
           </div>
           <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-            Decision-Support Active · 0 Autonomous Actions
+            Decision-Support Active
           </p>
         </div>
       ) : null}

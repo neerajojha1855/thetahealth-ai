@@ -60,7 +60,7 @@ export function AnalyticsPage() {
             <div className="flex items-center gap-2">
               <Badge variant="ai" className="gap-1 px-2.5 py-0.5">
                 <Sparkles className="h-3 w-3 text-cyan-400" />
-                Phase 8, 9 & 10 · BigQuery Analytics & Vertex AI AutoML
+                BigQuery Analytics & Vertex AI AutoML
               </Badge>
               <Badge variant="success">Vertex AI Model v2.4 Active</Badge>
             </div>
