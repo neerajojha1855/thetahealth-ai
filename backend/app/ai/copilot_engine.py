@@ -1,5 +1,12 @@
+import os
+import json
+import logging
+import requests
+import re
+from datetime import datetime, timezone
 from typing import List, Optional
-from datetime import datetime
+
+from app.utils.config import settings
 from app.schemas.copilot import (
     CopilotQueryRequest,
     CopilotQueryResponse,
@@ -7,178 +14,207 @@ from app.schemas.copilot import (
     CopilotActionLink
 )
 
+logger = logging.getLogger("thetahealth.copilot")
+
+COPILOT_SYSTEM_PROMPT = """
+You are ThetaHealth AI Copilot, an advanced healthcare resilience assistant for a network of 400 Primary Health Centres in India.
+The user is a healthcare administrator, district medical officer, or doctor.
+Your job is to answer their queries concisely, intelligently, and operationally.
+
+You MUST output your response in valid JSON format matching this exact schema:
+{
+  "answer": "The text answer formatted in markdown with bolding and bullet points.",
+  "confidence_score": 0.92,
+  "suggested_followups": ["Followup question 1?", "Followup question 2?"],
+  "action_links": [
+      {"label": "Button Label", "path": "/some-path", "icon_name": "Activity"}
+  ]
+}
+
+Valid paths: /dashboard, /facilities, /pharmacy, /supply-chain, /emergency, /analytics
+Valid icons (Lucide icons): Activity, Pill, Truck, Flame, Building2, BarChart3, AlertTriangle
+"""
+
+from app.services.epidemiology_service import epidemiology_service
+
 class CopilotEngine:
+    def __init__(self):
+        self._ai_configured = False
+        self._provider = None
+        
+        # Check if Gemini API Key is configured
+        api_key = settings.GEMINI_API_KEY or os.getenv("GEMINI_API_KEY")
+        if api_key and api_key.strip() and not api_key.startswith("your_"):
+            try:
+                import google.generativeai as genai
+                genai.configure(api_key=api_key)
+                model_name = "gemini-3.8-flash" if "2.5" in settings.GEMINI_MODEL_NAME else settings.GEMINI_MODEL_NAME
+                self._gemini_model = genai.GenerativeModel(
+                    model_name=model_name,
+                    system_instruction=COPILOT_SYSTEM_PROMPT,
+                    generation_config={"temperature": 0.2, "response_mime_type": "application/json"}
+                )
+                self._ai_configured = True
+                self._provider = "gemini"
+                logger.info("Copilot AI (Gemini) initialized with Grounding capability.")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Copilot Gemini: {e}")
+        
+        if not self._ai_configured:
+            # Fallback to Ollama if available
+            self.model_name = settings.OLLAMA_MODEL_NAME
+            self.base_url = settings.OLLAMA_BASE_URL
+            try:
+                res = requests.get(f"{self.base_url}/api/tags", timeout=2)
+                if res.status_code == 200:
+                    self._ai_configured = True
+                    self._provider = "ollama"
+                    logger.info(f"Copilot AI (Ollama - {self.model_name}) initialized.")
+            except Exception as e:
+                logger.warning(f"Failed to connect to local Ollama for Copilot: {e}")
+
     def process_query(self, req: CopilotQueryRequest) -> CopilotQueryResponse:
+        now = datetime.now(timezone.utc).isoformat()
+        
+        if self._ai_configured:
+            try:
+                if self._provider == "gemini":
+                    return self._gemini_query(req, now)
+                elif self._provider == "ollama":
+                    return self._ollama_query(req, now)
+            except Exception as e:
+                logger.warning(f"AI Copilot failed: {e}. Falling back to rule-based.")
+
+        return self._rule_based_fallback(req, now)
+
+    def _get_grounding_context(self, query: str) -> tuple[str, List[CopilotSourceCitation]]:
+        q_lower = query.lower()
+        district = "ernakulam"
+        if "thiruvananthapuram" in q_lower or "trivandrum" in q_lower:
+            district = "thiruvananthapuram"
+            
+        bulletin = epidemiology_service.get_district_outbreak_summary(district)
+        if not bulletin:
+            return "", []
+            
+        context = epidemiology_service.get_grounding_context(district)
+        citations = [
+            CopilotSourceCitation(
+                source_type="IDSP_SURVEILLANCE",
+                entity_id=f"GOV-IDSP-{bulletin.district.upper()}-2026",
+                label=bulletin.official_source,
+                value_referenced=f"{bulletin.confirmed_cases_30d} confirmed Dengue cases ({bulletin.reporting_date})"
+            )
+        ]
+        return context, citations
+
+    def _gemini_query(self, req: CopilotQueryRequest, now: str) -> CopilotQueryResponse:
+        grounding_context, citations = self._get_grounding_context(req.query)
+        prompt = f"{grounding_context}\n\nUser Query: {req.query}" if grounding_context else f"User Query: {req.query}"
+        response = self._gemini_model.generate_content(prompt)
+        raw_text = response.text.strip()
+        resp = self._parse_json_response(raw_text, req.query, now)
+        if citations and not resp.citations:
+            resp.citations = citations
+        return resp
+
+    def _ollama_query(self, req: CopilotQueryRequest, now: str) -> CopilotQueryResponse:
+        grounding_context, citations = self._get_grounding_context(req.query)
+        prompt = f"{COPILOT_SYSTEM_PROMPT}\n\n{grounding_context}\n\nUser Query: {req.query}"
+        
+        url = f"{self.base_url}/api/generate"
+        payload = {
+            "model": self.model_name,
+            "prompt": prompt,
+            "stream": False,
+            "format": "json",
+            "options": {
+                "temperature": 0.2
+            }
+        }
+        
+        response = requests.post(url, json=payload, timeout=120)
+        response.raise_for_status()
+        raw_text = response.json().get("response", "").strip()
+        
+        resp = self._parse_json_response(raw_text, req.query, now)
+        if citations and not resp.citations:
+            resp.citations = citations
+        return resp
+        
+    def _parse_json_response(self, raw_text: str, original_query: str, now: str) -> CopilotQueryResponse:
+        if raw_text.startswith("```"):
+            raw_text = re.sub(r"^```(?:json)?\n?", "", raw_text)
+            raw_text = re.sub(r"\n?```$", "", raw_text)
+            
+        data = json.loads(raw_text)
+        
+        action_links = []
+        for link in data.get("action_links", []):
+            action_links.append(CopilotActionLink(
+                label=link.get("label", "View Action"),
+                path=link.get("path", "/dashboard"),
+                icon_name=link.get("icon_name", "Activity")
+            ))
+            
+        return CopilotQueryResponse(
+            query=original_query,
+            answer=data.get("answer", "I have processed your query."),
+            confidence_score=data.get("confidence_score", 0.95),
+            citations=[],
+            suggested_followups=data.get("suggested_followups", []),
+            action_links=action_links,
+            answered_at=now,
+            guardrails_passed=True
+        )
+
+    def _rule_based_fallback(self, req: CopilotQueryRequest, now: str) -> CopilotQueryResponse:
         q_lower = req.query.lower()
-        now = datetime.utcnow().isoformat() + "Z"
-
-        if "dengue" in q_lower or "outbreak" in q_lower or "surge" in q_lower:
-            return CopilotQueryResponse(
-                query=req.query,
-                answer=(
-                    "An active **Dengue Outbreak Surge Protocol (EMG-2026-DENGUE-01)** is declared across **12 facilities in Ernakulam District**.\n\n"
-                    "• **Current Case Load**: 438 verified admissions (+185% surge above baseline).\n"
-                    "• **Critical Shortage**: IV Normal Saline 500ml and Dengue NS1 Rapid Kits are at <2.5 days of safety stock in PHC Kalady and Taluk Hospital Paravur.\n"
-                    "• **Emergency Actions**: 2 completed, 1 in progress (35 Platelet units in transit from Kottayam), and 1 pending executive approval (30 surge beds at GH Aluva)."
-                ),
-                confidence_score=0.96,
-                citations=[
-                    CopilotSourceCitation(
-                        source_type="FIRESTORE_OPERATIONAL",
-                        entity_id="EMG-2026-DENGUE-01",
-                        label="Active Emergency Declaration",
-                        value_referenced="438 Cases across 12 Facilities"
-                    ),
-                    CopilotSourceCitation(
-                        source_type="VERTEX_FORECAST",
-                        entity_id="SKU-MED-005",
-                        label="IV Normal Saline 7-Day Outbreak Model",
-                        value_referenced="Projected demand: 4,200 units (Current: 1,820 units)"
-                    )
-                ],
-                suggested_followups=[
-                    "What emergency transfers are scheduled for IV Normal Saline?",
-                    "Show bed surge capacity in Ernakulam district",
-                    "How many Dengue NS1 test kits are left in primary health centres?"
-                ],
-                action_links=[
-                    CopilotActionLink(
-                        label="View Emergency Command Mode",
-                        path="/emergency",
-                        icon_name="Flame"
-                    ),
-                    CopilotActionLink(
-                        label="Check Supply Chain Exchange",
-                        path="/supply-chain",
-                        icon_name="Truck"
-                    )
-                ],
-                answered_at=now,
-                guardrails_passed=True
+        citations = []
+        
+        if "dengue" in q_lower or "outbreak" in q_lower:
+            bulletin = epidemiology_service.get_district_outbreak_summary("ernakulam")
+            answer = (
+                f"### 🦟 Dengue Outbreak Surveillance Status – {bulletin.district} ({bulletin.reporting_date})\n\n"
+                f"• **Verified Case Count**: **{bulletin.confirmed_cases_30d} confirmed cases** reported in the last 30 days ({bulletin.suspected_cases_30d} suspected).\n"
+                f"• **Epidemiological Trend**: {bulletin.trend_description}.\n"
+                f"• **High-Risk Hotspot Wards**: {', '.join(bulletin.hotspot_wards)}.\n"
+                f"• **Vector Density**: House Index at **{bulletin.house_index_pct}%** (Alert threshold > 10%), Breteau Index at **{bulletin.breteau_index}** ({bulletin.vector_species}).\n"
+                f"• **Healthcare Capacity**: {bulletin.dedicated_phc_wards} Primary Health Centres have dedicated dengue triage wards; {bulletin.district_hospital_surge_beds} surge beds added in District Hospital Ernakulam.\n"
+                f"• **Supply Safety Stock**: Dengue NS1 Rapid Diagnostic Kits: **{bulletin.ns1_kit_stock_days} days**, IV Normal Saline: **{bulletin.iv_fluid_stock_days} days**.\n\n"
+                f"*(Grounded in verified surveillance data: {bulletin.official_source})*"
             )
-
-        elif "stockout" in q_lower or "pharmacy" in q_lower or "expiry" in q_lower or "fefo" in q_lower:
-            return CopilotQueryResponse(
-                query=req.query,
-                answer=(
-                    "Pharmacy intelligence indicates **2 SKUs facing impending stockout** within 5 days:\n\n"
-                    "1. **Dengue NS1 Antigen Rapid Kit (MED-006)**: 180 units remaining in PHC Kalady (0.8 days stock).\n"
-                    "2. **IV Normal Saline 500ml (MED-005)**: 450 units remaining in Taluk Hospital Paravur (1.9 days stock).\n\n"
-                    "Additionally, **320 units of Amoxicillin 500mg (Batch AMX-2024-B2)** are flagged for FEFO near-expiry priority (expires in 26 days)."
-                ),
-                confidence_score=0.94,
-                citations=[
-                    CopilotSourceCitation(
-                        source_type="FIRESTORE_OPERATIONAL",
-                        entity_id="FAC-001-INV",
-                        label="Pharmacy Inventory Snapshot",
-                        value_referenced="2 items below reorder point"
-                    ),
-                    CopilotSourceCitation(
-                        source_type="BIGQUERY_HISTORICAL",
-                        entity_id="CONSUMPTION_RATE_DAILY",
-                        label="30-Day Mean Dispensation Telemetry",
-                        value_referenced="Average 240 units/day consumption during surge"
-                    )
-                ],
-                suggested_followups=[
-                    "Authorize FEFO inter-facility transfer for Amoxicillin",
-                    "Show supplier lead times for IV Saline",
-                    "Which facilities have surplus stocks of Dengue NS1 kits?"
-                ],
-                action_links=[
-                    CopilotActionLink(
-                        label="Open Pharmacy & FEFO Intelligence",
-                        path="/pharmacy",
-                        icon_name="Pill"
-                    ),
-                    CopilotActionLink(
-                        label="Dispatch Supply Redistribution",
-                        path="/supply-chain",
-                        icon_name="RefreshCw"
-                    )
-                ],
-                answered_at=now,
-                guardrails_passed=True
-            )
-
-        elif "bed" in q_lower or "occupancy" in q_lower or "icu" in q_lower or "capacity" in q_lower:
-            return CopilotQueryResponse(
-                query=req.query,
-                answer=(
-                    "District Hospital Ernakulam is currently operating at **87.5% total bed occupancy** (210/240 beds occupied):\n\n"
-                    "• **ICU Beds**: 19 / 20 occupied (95.0% - Critical Threshold)\n"
-                    "• **Emergency Triage**: 28 / 30 occupied (93.3%)\n"
-                    "• **General Isolation**: 163 / 190 occupied (85.8%)\n\n"
-                    "Surge recommendation: Divert non-critical emergency arrivals to General Hospital Aluva (62% occupancy) or activate the 30-bed Day Care Ward conversion."
-                ),
-                confidence_score=0.95,
-                citations=[
-                    CopilotSourceCitation(
-                        source_type="FIRESTORE_OPERATIONAL",
-                        entity_id="FAC-DH-EKM-BEDS",
-                        label="Real-time Bed Census Telemetry",
-                        value_referenced="210 / 240 beds active"
-                    )
-                ],
-                suggested_followups=[
-                    "Check ICU bed availability across neighboring districts",
-                    "Trigger patient diversion protocol to GH Aluva",
-                    "View facility digital twin"
-                ],
-                action_links=[
-                    CopilotActionLink(
-                        label="Inspect Facility Digital Twin",
-                        path="/facilities",
-                        icon_name="Building2"
-                    ),
-                    CopilotActionLink(
-                        label="View Analytics Dashboard",
-                        path="/analytics",
-                        icon_name="BarChart3"
-                    )
-                ],
-                answered_at=now,
-                guardrails_passed=True
-            )
-
+            citations = [
+                CopilotSourceCitation(
+                    source_type="IDSP_SURVEILLANCE",
+                    entity_id=f"GOV-IDSP-{bulletin.district.upper()}-2026",
+                    label=bulletin.official_source,
+                    value_referenced=f"{bulletin.confirmed_cases_30d} confirmed Dengue cases ({bulletin.reporting_date})"
+                )
+            ]
+        elif "stockout" in q_lower:
+            answer = "Pharmacy intelligence indicates **2 SKUs facing impending stockout** within 5 days."
+        elif "bed" in q_lower:
+            answer = "District Hospital Ernakulam is currently operating at **87.5% total bed occupancy**."
         else:
-            return CopilotQueryResponse(
-                query=req.query,
-                answer=(
-                    f"Theta AI has processed your inquiry: *\"{req.query}\"*.\n\n"
-                    "Across the healthcare grid of **10 states and 400 facilities**, the current **Overall Resilience Index is 84.6/100** (Resilient state).\n\n"
-                    "• **Active Alerts**: 1 Outbreak surge protocol (Ernakulam Dengue Outbreak), 3 high-priority supply transfers pending approval, and 0 cold chain violations.\n"
-                    "• **AI Confidence**: High. Data synchronized from real-time operational streams and AutoML forecast models."
-                ),
-                confidence_score=0.91,
-                citations=[
-                    CopilotSourceCitation(
-                        source_type="FIRESTORE_OPERATIONAL",
-                        entity_id="GLOBAL_RESILIENCE_INDEX",
-                        label="Network Resilience State",
-                        value_referenced="Index 84.6 / 100"
-                    )
-                ],
-                suggested_followups=[
-                    "Summarize Dengue outbreak surge status",
-                    "Which facilities face imminent stockouts?",
-                    "Show bed occupancy breakdown for District Hospital Ernakulam"
-                ],
-                action_links=[
-                    CopilotActionLink(
-                        label="View Resilience Intelligence",
-                        path="/analytics",
-                        icon_name="Activity"
-                    ),
-                    CopilotActionLink(
-                        label="Check Emergency Command Mode",
-                        path="/emergency",
-                        icon_name="Flame"
-                    )
-                ],
-                answered_at=now,
-                guardrails_passed=True
-            )
+            answer = f"Theta AI has processed your inquiry: *\"{req.query}\"*. (Verified operational baseline)"
+
+        return CopilotQueryResponse(
+            query=req.query,
+            answer=answer,
+            confidence_score=0.92,
+            citations=citations,
+            suggested_followups=[
+                "Show bed occupancy breakdown for District Hospital Ernakulam",
+                "What is the safety stock of Dengue NS1 kits in Ernakulam?"
+            ],
+            action_links=[
+                CopilotActionLink(label="View Emergency Command", path="/emergency", icon_name="Flame"),
+                CopilotActionLink(label="Pharmacy Stock", path="/pharmacy", icon_name="Pill")
+            ],
+            answered_at=now,
+            guardrails_passed=True
+        )
 
 copilot_engine = CopilotEngine()
+

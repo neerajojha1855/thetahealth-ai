@@ -157,7 +157,7 @@ class HybridAIExtractor:
             }
         }
         
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=120)
         response.raise_for_status()
         
         raw_text = response.json().get("response", "").strip()

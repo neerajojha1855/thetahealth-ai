@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status, Header
 from typing import Optional, List
 from app.schemas.auth import UserProfile, RoleEnum, ScopeLevel
 from app.security.firebase import verify_firebase_token
+from app.utils.config import settings
 
 ROLE_PERMISSIONS = {
     RoleEnum.NATIONAL_ADMIN: [
@@ -78,8 +79,8 @@ async def get_current_user(
     Extracts and verifies user identity from Firebase Auth Authorization header.
     Supports X-Demo-Role header for rapid demonstration persona switching.
     """
-    # Demo/Override mode for testing & judging convenience
-    if x_demo_role:
+    # Demo/Override mode — ONLY allowed in DEBUG mode
+    if x_demo_role and settings.DEBUG:
         try:
             role = RoleEnum(x_demo_role)
             scope = ScopeLevel.FACILITY if role in [RoleEnum.PHC_WORKER, RoleEnum.HOSPITAL_ADMIN, RoleEnum.PHARMACIST, RoleEnum.DOCTOR_NURSE] else ScopeLevel.NATIONAL
@@ -99,14 +100,20 @@ async def get_current_user(
             pass
 
     if not authorization or not authorization.startswith("Bearer "):
-        # Default fallback to National Admin for seamless developer onboarding
-        return UserProfile(
-            uid="default-admin-001",
-            email="admin@thetahealth.gov",
-            name="Dr. National Admin",
-            role=RoleEnum.NATIONAL_ADMIN,
-            scope_level=ScopeLevel.NATIONAL,
-            permissions=ROLE_PERMISSIONS[RoleEnum.NATIONAL_ADMIN]
+        if settings.DEBUG:
+            # Development fallback only — NEVER in production
+            return UserProfile(
+                uid="default-admin-001",
+                email="admin@thetahealth.gov",
+                name="Dr. National Admin",
+                role=RoleEnum.NATIONAL_ADMIN,
+                scope_level=ScopeLevel.NATIONAL,
+                permissions=ROLE_PERMISSIONS[RoleEnum.NATIONAL_ADMIN]
+            )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Please provide a valid Bearer token.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     token = authorization.split("Bearer ")[1]
