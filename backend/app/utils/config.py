@@ -5,18 +5,22 @@ from typing import List, Optional
 class Settings(BaseSettings):
     PROJECT_NAME: str = "ThetaHealth AI"
     API_V1_STR: str = "/api/v1"
-    ENVIRONMENT: str = "development"
-    DEBUG: bool = True
+    ENVIRONMENT: str
+    DEBUG: bool
 
     # GCP / Firebase
-    GCP_PROJECT_ID: str = "thetahealth001"
-    FIREBASE_PROJECT_ID: str = "thetahealth001"
-    FIREBASE_STORAGE_BUCKET: str = "thetahealth001.firebasestorage.app"
-    BIGQUERY_DATASET: str = "thetahealth_analytics"
+    GCP_PROJECT_ID: str
+    FIREBASE_PROJECT_ID: str
+    FIREBASE_STORAGE_BUCKET: str
+    BIGQUERY_DATASET: str
+    FIREBASE_API_KEY: str
 
     # AI / ML
     GEMINI_API_KEY: Optional[str] = None
-    VERTEX_LOCATION: str = "us-central1"
+    GEMINI_MODEL_NAME: str
+    VERTEX_LOCATION: str
+    OLLAMA_MODEL_NAME: str
+    OLLAMA_BASE_URL: str
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [

@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "@/features/auth/AuthContext"
-import { RoleSelectorModal } from "@/features/auth/RoleSelectorModal"
 import { AppLayout } from "@/components/layout/AppLayout"
+import { AuthPage } from "@/features/auth/AuthPage"
+import { UserProfilePage } from "@/features/profile/UserProfilePage"
 import { CommandCenterPage } from "@/features/command-center/CommandCenterPage"
 import { FacilityNetworkPage } from "@/features/facilities/FacilityNetworkPage"
 import { ThetaVoicePage } from "@/features/voice/ThetaVoicePage"
@@ -17,8 +18,12 @@ export function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <RoleSelectorModal />
         <Routes>
+          {/* Standalone Authentication Portal */}
+          <Route path="/login" element={<AuthPage initialTab="login" />} />
+          <Route path="/register" element={<AuthPage initialTab="register" />} />
+
+          {/* Main App Layout */}
           <Route path="/" element={<AppLayout />}>
             <Route index element={<CommandCenterPage />} />
             <Route path="command-center" element={<CommandCenterPage />} />
@@ -31,6 +36,7 @@ export function App() {
             <Route path="copilot" element={<CopilotPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="profile" element={<UserProfilePage />} />
             {/* Catch-all to Command Center */}
             <Route path="*" element={<CommandCenterPage />} />
           </Route>

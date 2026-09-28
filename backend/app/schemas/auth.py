@@ -30,6 +30,27 @@ class UserProfile(BaseModel):
     facility_id: Optional[str] = None
     facility_name: Optional[str] = None
     permissions: List[str] = []
+    profile_picture: Optional[str] = None
+    designation: Optional[str] = None
+    organisation: Optional[str] = None
+    work_location: Optional[str] = None
+
+class UserRegisterRequest(BaseModel):
+    email: EmailStr
+    password: str
+    confirm_password: str
+    name: str
+
+class UserLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    profile_picture: Optional[str] = None
+    designation: Optional[str] = None
+    organisation: Optional[str] = None
+    work_location: Optional[str] = None
 
 class TokenVerifyRequest(BaseModel):
     id_token: str

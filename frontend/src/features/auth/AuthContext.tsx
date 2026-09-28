@@ -22,129 +22,84 @@ export interface UserPersona {
   facilityName?: string
   districtName?: string
   stateName?: string
+  profile_picture?: string
 }
 
-export const DEMO_PERSONAS: Record<RoleType, UserPersona> = {
-  NATIONAL_ADMIN: {
-    role: "NATIONAL_ADMIN",
-    title: "National Administrator",
-    name: "Dr. Aarti Sharma",
-    email: "dr.aarti@thetahealth.gov",
-    scope: "National (All 10 States & 400 Facilities)",
-    stateName: "All States",
-  },
-  STATE_DISTRICT_ADMIN: {
-    role: "STATE_DISTRICT_ADMIN",
-    title: "District Health Officer",
-    name: "Rajesh Varma",
-    email: "rajesh.varma@up.gov.in",
-    scope: "District Meerut (50 Facilities)",
-    districtName: "Meerut",
-    stateName: "Uttar Pradesh",
-  },
-  HOSPITAL_ADMIN: {
-    role: "HOSPITAL_ADMIN",
-    title: "Hospital Superintendent",
-    name: "Dr. Sanjay Gupta",
-    email: "sanjay.gupta@meerut-dh.gov.in",
-    scope: "Facility (Meerut District Hospital)",
-    facilityName: "District Hospital Meerut",
-    districtName: "Meerut",
-    stateName: "Uttar Pradesh",
-  },
-  PHC_WORKER: {
-    role: "PHC_WORKER",
-    title: "PHC Community Worker",
-    name: "Sunita Devi",
-    email: "sunita.devi@anandpur-phc.org",
-    scope: "Facility (PHC Anandpur)",
-    facilityName: "PHC Anandpur",
-    districtName: "Meerut",
-    stateName: "Uttar Pradesh",
-  },
-  DOCTOR_NURSE: {
-    role: "DOCTOR_NURSE",
-    title: "Medical Officer",
-    name: "Dr. Priya Patel",
-    email: "priya.patel@anandpur-phc.org",
-    scope: "Clinical Ward (PHC Anandpur)",
-    facilityName: "PHC Anandpur",
-    districtName: "Meerut",
-    stateName: "Uttar Pradesh",
-  },
-  PHARMACIST: {
-    role: "PHARMACIST",
-    title: "Chief Pharmacist",
-    name: "Anil Deshmukh",
-    email: "anil.d@meerut-dh.gov.in",
-    scope: "Pharmacy Depot (Meerut District Hospital)",
-    facilityName: "District Hospital Meerut",
-    districtName: "Meerut",
-    stateName: "Uttar Pradesh",
-  },
-  SUPPLY_CHAIN_MANAGER: {
-    role: "SUPPLY_CHAIN_MANAGER",
-    title: "Regional Logistics Officer",
-    name: "Vikram Mehta",
-    email: "vikram.mehta@supply.thetahealth.gov",
-    scope: "Northern Corridor Logistics Depot",
-    districtName: "Northern Regional Hub",
-    stateName: "Uttar Pradesh",
-  },
-  EMERGENCY_OFFICER: {
-    role: "EMERGENCY_OFFICER",
-    title: "Emergency Response Commander",
-    name: "Col. Raghav Singhania",
-    email: "raghav.s@disaster.thetahealth.gov",
-    scope: "Outbreak Response Team (Dengue Corridor)",
-    stateName: "Uttar Pradesh",
-  },
-  ANALYST: {
-    role: "ANALYST",
-    title: "Public Health Epidemiologist",
-    name: "Meera Krishnan",
-    email: "meera.k@analytics.thetahealth.gov",
-    scope: "Epidemiological Intelligence & Forecasting",
-    stateName: "National",
-  },
+const DEFAULT_GUEST: UserPersona = {
+  role: "PHC_WORKER",
+  title: "Guest",
+  name: "Not Authenticated",
+  email: "",
+  scope: "None"
 }
 
 interface AuthContextType {
   currentUser: UserPersona
   firebaseUser: FirebaseUser | null
   loading: boolean
-  isRoleModalOpen: boolean
-  setIsRoleModalOpen: (open: boolean) => void
-  switchRole: (role: RoleType) => void
   logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<UserPersona>(() => {
-    const saved = localStorage.getItem("theta_active_role") as RoleType
-    return (saved && DEMO_PERSONAS[saved]) || DEMO_PERSONAS.NATIONAL_ADMIN
-  })
+  const [currentUser, setCurrentUser] = useState<UserPersona>(DEFAULT_GUEST)
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user)
+      if (user) {
+        try {
+          const idToken = await user.getIdToken();
+          localStorage.setItem("theta_token", idToken);
+          const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+          const res = await fetch(`${API_BASE}/profile/`, {
+            headers: { Authorization: `Bearer ${idToken}` }
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            setCurrentUser({
+              role: data.role || "PHC_WORKER",
+              title: data.designation || "Healthcare Officer",
+              name: data.name || user.displayName || "Authenticated User",
+              email: data.email || user.email || "",
+              scope: data.scope_level || "Facility",
+              profile_picture: data.profile_picture || user.photoURL || undefined,
+              facilityName: data.work_location,
+              districtName: data.work_location,
+            });
+          } else {
+            // Fallback
+            setCurrentUser({
+              role: "PHC_WORKER",
+              title: "Healthcare Officer",
+              name: user.displayName || "Authenticated User",
+              email: user.email || "",
+              scope: "Facility",
+              profile_picture: user.photoURL || undefined,
+            });
+          }
+        } catch (e) {
+          // Fallback
+          setCurrentUser({
+            role: "PHC_WORKER",
+            title: "Healthcare Officer",
+            name: user.displayName || "Authenticated User",
+            email: user.email || "",
+            scope: "Facility",
+            profile_picture: user.photoURL || undefined,
+          });
+        }
+      } else {
+        setCurrentUser(DEFAULT_GUEST)
+      }
       setLoading(false)
     })
     return () => unsubscribe()
   }, [])
-
-  const switchRole = (role: RoleType) => {
-    const persona = DEMO_PERSONAS[role]
-    if (persona) {
-      setCurrentUser(persona)
-      localStorage.setItem("theta_active_role", role)
-    }
-  }
 
   const logout = async () => {
     await signOut(auth)
@@ -156,9 +111,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentUser,
         firebaseUser,
         loading,
-        isRoleModalOpen,
-        setIsRoleModalOpen,
-        switchRole,
         logout,
       }}
     >

@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from app.api.v1.endpoints import (
     health, auth, facilities, operational_state, pharmacy,
-    voice, analytics, supply_chain, emergency, copilot, simulator
+    voice, analytics, supply_chain, emergency, copilot, simulator,
+    users, profile
 )
 
 api_router = APIRouter()
@@ -16,8 +17,8 @@ api_router.include_router(supply_chain.router, prefix="/supply", tags=["Supply C
 api_router.include_router(emergency.router, prefix="/emergency", tags=["Emergency Command Mode"])
 api_router.include_router(copilot.router, prefix="/copilot", tags=["Ask Theta AI Copilot"])
 api_router.include_router(simulator.router, prefix="/simulator", tags=["Healthcare What-If Simulator"])
-
-
+api_router.include_router(users.router, prefix="/users", tags=["User Authentication & Profile"])
+api_router.include_router(profile.router, prefix="/profile", tags=["User Authentication & Profile"])
 
 
 

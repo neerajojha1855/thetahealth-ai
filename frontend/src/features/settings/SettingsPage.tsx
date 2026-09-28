@@ -1,23 +1,17 @@
-import { useAuth, DEMO_PERSONAS, RoleType } from "@/features/auth/AuthContext"
+import { useAuth, RoleType } from "@/features/auth/AuthContext"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Shield,
   KeyRound,
-  CheckCircle2,
-  Users,
   Building2,
   Sparkles,
   Lock,
-  Layers,
-  Database,
-  ArrowRight,
 } from "lucide-react"
 
 export function SettingsPage() {
-  const { currentUser, switchRole, setIsRoleModalOpen } = useAuth()
-  const roles = Object.keys(DEMO_PERSONAS) as RoleType[]
+  const { currentUser } = useAuth()
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 pb-12">
@@ -44,14 +38,6 @@ export function SettingsPage() {
               FastAPI backend enforces JWT & Firebase ID token validation with strict role boundaries across 9 operational healthcare tiers.
             </p>
           </div>
-
-          <Button
-            onClick={() => setIsRoleModalOpen(true)}
-            className="gap-2 text-xs shrink-0"
-          >
-            <Users className="h-4 w-4" />
-            Switch Active Persona
-          </Button>
         </div>
       </div>
 
@@ -66,7 +52,7 @@ export function SettingsPage() {
           <CardContent className="space-y-2">
             <div className="text-xl font-bold text-white">{currentUser.title}</div>
             <p className="text-xs text-slate-300 font-medium">{currentUser.name}</p>
-            <p className="text-[11px] text-slate-400 font-mono">{currentUser.email}</p>
+            <p className="text-[11px] text-slate-400 font-mono">{currentUser.email || "No Email Provided"}</p>
             <Badge variant="ai" className="mt-2 text-[10px]">
               Active Role: {currentUser.role}
             </Badge>
@@ -114,97 +100,6 @@ export function SettingsPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* RBAC 9-Tier Matrix */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Lock className="h-4 w-4 text-cyan-400" />
-            9-Tier Role-Based Access Control Matrix
-          </CardTitle>
-          <CardDescription>
-            Select any persona below to instantaneously test the application interface and backend permissions from that role's viewpoint.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-800 text-slate-400">
-                  <th className="py-3 px-3 font-semibold">Role Tier</th>
-                  <th className="py-3 px-3 font-semibold">Demo User</th>
-                  <th className="py-3 px-3 font-semibold">Scope Level</th>
-                  <th className="py-3 px-3 font-semibold">Primary Workspace</th>
-                  <th className="py-3 px-3 font-semibold text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {roles.map((roleKey) => {
-                  const persona = DEMO_PERSONAS[roleKey]
-                  const isActive = currentUser.role === roleKey
-
-                  return (
-                    <tr
-                      key={roleKey}
-                      className={
-                        isActive
-                          ? "bg-cyan-950/20 text-white"
-                          : "hover:bg-slate-900/50 text-slate-300"
-                      }
-                    >
-                      <td className="py-3 px-3">
-                        <div className="font-semibold flex items-center gap-2">
-                          {persona.title}
-                          {isActive && (
-                            <Badge variant="ai" className="text-[9px] py-0">Current</Badge>
-                          )}
-                        </div>
-                        <span className="text-[10px] font-mono text-slate-400">{roleKey}</span>
-                      </td>
-                      <td className="py-3 px-3">
-                        <div className="font-medium">{persona.name}</div>
-                        <span className="text-[10px] text-slate-400">{persona.email}</span>
-                      </td>
-                      <td className="py-3 px-3">
-                        <Badge variant="outline" className="text-[10px]">
-                          {persona.scope.split("(")[0]}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-3 text-slate-400">
-                        {roleKey === "PHC_WORKER" && "Theta Voice Assistant"}
-                        {roleKey === "NATIONAL_ADMIN" && "National Command Center"}
-                        {roleKey === "PHARMACIST" && "Pharmacy Intelligence"}
-                        {roleKey === "SUPPLY_CHAIN_MANAGER" && "Resource Exchange"}
-                        {roleKey === "EMERGENCY_OFFICER" && "Emergency Mode Ops"}
-                        {roleKey === "ANALYST" && "Analytics & Forecasts"}
-                        {roleKey === "HOSPITAL_ADMIN" && "Facility Operations"}
-                        {roleKey === "DOCTOR_NURSE" && "Clinical Queue"}
-                        {roleKey === "STATE_DISTRICT_ADMIN" && "District Dashboard"}
-                      </td>
-                      <td className="py-3 px-3 text-right">
-                        {isActive ? (
-                          <span className="text-emerald-400 font-semibold text-[11px] flex items-center justify-end gap-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> Active
-                          </span>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => switchRole(roleKey)}
-                            className="h-7 text-xs"
-                          >
-                            Switch to this Role
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app"
 import { getAuth } from "firebase/auth"
+import { getStorage } from "firebase/storage"
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
@@ -14,3 +15,4 @@ const firebaseConfig = {
 // Initialize Firebase once with graceful fallback
 export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig)
 export const auth = getAuth(app)
+export const storage = getStorage(app)

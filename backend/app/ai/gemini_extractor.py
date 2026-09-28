@@ -15,6 +15,11 @@ import os
 import re
 import json
 import logging
+import requests
+from app.utils.config import settings
+import re
+import json
+import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from app.schemas.ai_voice import (
@@ -70,52 +75,94 @@ Critical rules:
 """
 
 
-class GeminiExtractor:
+class HybridAIExtractor:
     def __init__(self):
-        self._gemini_configured = False
-        self._gemini_model = None
+        self._ai_configured = False
+        self._provider = None
         
-        api_key = os.getenv("GEMINI_API_KEY")
-        if api_key and api_key.strip():
-            try:
-                import google.generativeai as genai
-                genai.configure(api_key=api_key)
-                self._gemini_model = genai.GenerativeModel(
-                    model_name="gemini-1.5-flash",
-                    system_instruction=GEMINI_SYSTEM_PROMPT,
-                    generation_config={"temperature": 0.1, "response_mime_type": "application/json"},
-                )
-                self._gemini_configured = True
-                logger.info("Gemini 1.5 Flash initialized successfully.")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Gemini SDK: {e}. Using rule-based fallback.")
+        # If in production AND NOT debugging, use Gemini
+        if settings.ENVIRONMENT == "production" and not settings.DEBUG:
+            api_key = os.getenv("GEMINI_API_KEY")
+            if api_key and api_key.strip():
+                try:
+                    import google.generativeai as genai
+                    genai.configure(api_key=api_key)
+                    self._gemini_model = genai.GenerativeModel(
+                        model_name=settings.GEMINI_MODEL_NAME,
+                        system_instruction=GEMINI_SYSTEM_PROMPT,
+                        generation_config={"temperature": 0.1, "response_mime_type": "application/json"},
+                    )
+                    self._ai_configured = True
+                    self._provider = "gemini"
+                    logger.info("Production AI (Gemini 1.5 Flash) initialized successfully.")
+                except Exception as e:
+                    logger.warning(f"Failed to initialize Gemini SDK: {e}. Using rule-based fallback.")
+            else:
+                logger.warning("Production environment detected, but no GEMINI_API_KEY provided!")
         else:
-            logger.info("No GEMINI_API_KEY set. Using intelligent rule-based extractor.")
+            # Use Local Ollama (gpt-oss) for development/debug
+            self.model_name = settings.OLLAMA_MODEL_NAME
+            self.base_url = settings.OLLAMA_BASE_URL
+            try:
+                res = requests.get(f"{self.base_url}/api/tags", timeout=2)
+                if res.status_code == 200:
+                    self._ai_configured = True
+                    self._provider = "ollama"
+                    logger.info(f"Local AI Extractor initialized with model: {self.model_name}")
+                else:
+                    logger.warning("Ollama API responded with non-200 status.")
+            except Exception as e:
+                logger.warning(f"Failed to connect to local Ollama instance at {self.base_url}: {e}")
 
     def parse_transcript(self, transcript: str, facility_id: str) -> ParsedReportResponse:
         """
-        Main entry point: try Gemini first, fall back to rule-based extraction.
+        Main entry point: try Local AI first, fall back to rule-based extraction.
         """
-        if self._gemini_configured and self._gemini_model:
+        if self._ai_configured:
             try:
-                return self._gemini_parse(transcript, facility_id)
+                if self._provider == "gemini":
+                    return self._gemini_parse(transcript, facility_id)
+                elif self._provider == "ollama":
+                    return self._ollama_parse(transcript, facility_id)
             except Exception as e:
-                logger.warning(f"Gemini extraction failed: {e}. Using rule-based fallback.")
+                logger.warning(f"{self._provider} extraction failed: {e}. Using rule-based fallback.")
         
         return self._rule_based_parse(transcript, facility_id)
 
-    def _gemini_parse(self, transcript: str, facility_id: str) -> ParsedReportResponse:
-        """Use Gemini API for structured extraction."""
-        prompt = f"""
-Facility ID: {facility_id}
-Worker Report: "{transcript}"
-
-Parse this report into structured JSON following the system prompt schema.
-"""
+    def _gemini_parse(self, transcript: str, facility_id: str):
+        prompt = f"Facility ID: {facility_id}\nWorker Report: \"{transcript}\"\n\nParse this report into structured JSON following the system prompt schema.\n"
         response = self._gemini_model.generate_content(prompt)
         raw_text = response.text.strip()
+        if raw_text.startswith("```"):
+            raw_text = re.sub(r"^```(?:json)?\n?", "", raw_text)
+            raw_text = re.sub(r"\n?```$", "", raw_text)
+        data = json.loads(raw_text)
+        entities = {}
+        for field_name, field_data in data.get("entities", {}).items():
+            entities[field_name] = ExtractedEntity(field_name=field_name, value=field_data.get("value"), confidence=field_data.get("confidence", 0.85), source_snippet=field_data.get("source_snippet", ""))
+        return ParsedReportResponse(intent=data.get("intent", "GENERAL_REPORT"), overall_confidence=data.get("overall_confidence", 0.85), entities=entities, needs_clarification=data.get("needs_clarification", False), suggested_action=data.get("suggested_action", "Log operational note"), raw_transcript=transcript, parsed_at=datetime.now(timezone.utc).isoformat())
+
+    def _ollama_parse(self, transcript: str, facility_id: str) -> ParsedReportResponse:
+        """Use Local Ollama API for structured extraction."""
+        prompt = f"{GEMINI_SYSTEM_PROMPT}\n\nFacility ID: {facility_id}\nWorker Report: \"{transcript}\"\n\nParse this report into structured JSON following the system prompt schema.\nJSON Output:\n"
         
-        # Strip markdown code fences if present
+        url = f"{self.base_url}/api/generate"
+        payload = {
+            "model": self.model_name,
+            "prompt": prompt,
+            "stream": False,
+            "format": "json",
+            "options": {
+                "temperature": 0.1
+            }
+        }
+        
+        response = requests.post(url, json=payload, timeout=30)
+        response.raise_for_status()
+        
+        raw_text = response.json().get("response", "").strip()
+        
+        # Strip markdown code fences if present (Ollama usually doesn't output them when format='json', but just in case)
         if raw_text.startswith("```"):
             raw_text = re.sub(r"^```(?:json)?\n?", "", raw_text)
             raw_text = re.sub(r"\n?```$", "", raw_text)
@@ -430,4 +477,4 @@ Parse this report into structured JSON following the system prompt schema.
         return "PHC Staff Member"
 
 
-gemini_extractor = GeminiExtractor()
+gemini_extractor = HybridAIExtractor()
