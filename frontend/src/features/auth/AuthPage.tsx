@@ -24,12 +24,30 @@ import { GoogleAuthProvider, signInWithPopup } from "firebase/auth"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1"
 
+const GithubIcon = ({ className }: { className?: string }) => (
+  <svg
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+    <path d="M9 18c-4.51 2-5-2-7-2" />
+  </svg>
+)
+
 export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "register" }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   
-  const [tab, setTab] = useState<"login" | "register">(
-    (searchParams.get("tab") as "login" | "register") || initialTab
+  const [tab, setTab] = useState<"login" | "register" | "forgot_password" | "reset_password">(
+    (searchParams.get("tab") as any) || initialTab
   )
   
   // Login form state
@@ -43,8 +61,9 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
   const [regEmail, setRegEmail] = useState("")
   const [regPassword, setRegPassword] = useState("")
   const [regConfirmPassword, setRegConfirmPassword] = useState("")
-  const [regDesignation, setRegDesignation] = useState("Medical Officer")
+  const [regDesignation, setRegDesignation] = useState("")
   const [regFacility, setRegFacility] = useState("")
+  const [regOrganisation, setRegOrganisation] = useState("")
   const [showRegPassword, setShowRegPassword] = useState(false)
   
   // Status state
@@ -52,20 +71,26 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
+  // Forgot/Reset password state
+  const [resetEmail, setResetEmail] = useState("")
+  const [resetCode, setResetCode] = useState("")
+  const [resetNewPassword, setResetNewPassword] = useState("")
+  const [isCodeVerified, setIsCodeVerified] = useState(false)
+
   // Real-time password criteria
   const hasMinLength = regPassword.length >= 8
   const hasUppercase = /[A-Z]/.test(regPassword)
   const hasNumber = /[0-9]/.test(regPassword)
   const hasSpecial = /[@$!%*?&#^()_+\-=[\]{};':"\\|,.<>/?]/.test(regPassword)
   const passwordsMatch = regPassword.length > 0 && regPassword === regConfirmPassword
-  const isRegisterValid = hasMinLength && hasUppercase && hasNumber && hasSpecial && passwordsMatch && regEmail && regName
+  const isRegisterValid = hasMinLength && hasUppercase && hasNumber && hasSpecial && passwordsMatch && regEmail && regName && regFacility && regOrganisation
 
   const mapDesignationToRole = (designation: string) => {
-    if (designation === "Chief Pharmacist") return "PHARMACIST";
-    if (designation === "District Health Officer") return "STATE_DISTRICT_ADMIN";
-    if (designation === "Supply Chain Lead") return "SUPPLY_CHAIN_MANAGER";
-    if (designation === "PHC Nurse/Worker") return "PHC_WORKER";
-    return "DOCTOR_NURSE"; // Medical Officer default
+    if (designation === "Chief Pharmacist") return "Pharmacist";
+    if (designation === "District Health Officer") return "State District Admin";
+    if (designation === "Supply Chain Lead") return "Supply Chain Manager";
+    if (designation === "PHC Nurse/Worker") return "PHC Worker";
+    return "Doctor";
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -115,7 +140,7 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
           name: regName,
           designation: regDesignation,
           work_location: regFacility,
-          organisation: "National Health Mission (NHM)",
+          organisation: regOrganisation,
           role: mapDesignationToRole(regDesignation)
         })
       })
@@ -142,6 +167,80 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
       }, 1000)
     } catch (err: any) {
       setErrorMsg(err.message || "Registration failed. Please check your inputs.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    setIsLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail })
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.detail || "Failed to request password reset")
+      setSuccessMsg("Verification code sent to your email! (Check spam folder too)")
+      setIsCodeVerified(false)
+      setTab("reset_password")
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to request password reset")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleVerifyCodeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    setIsLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/verify-reset-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email: resetEmail,
+          code: resetCode
+        })
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.detail || "Failed to verify code")
+      setSuccessMsg("Code verified! Please enter your new password.")
+      setIsCodeVerified(true)
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to verify code")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    setIsLoading(true)
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email: resetEmail,
+          code: resetCode,
+          new_password: resetNewPassword
+        })
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.detail || "Failed to reset password")
+      setSuccessMsg("Password reset successfully. Please login with your new password.")
+      setTab("login")
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to reset password")
     } finally {
       setIsLoading(false)
     }
@@ -247,6 +346,7 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
       <div className="lg:w-1/2 p-6 sm:p-10 lg:p-16 flex items-center justify-center bg-[#070C15]">
         <div className="w-full max-w-md space-y-6">
           {/* Tab Switcher */}
+          {(tab === "login" || tab === "register") && (
           <div className="flex rounded-xl bg-[#0E1726] border border-[#1E293B] p-1">
             <button
               onClick={() => { setTab("login"); setErrorMsg(null); }}
@@ -269,6 +369,7 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
               Create Account
             </button>
           </div>
+          )}
 
           {/* Alerts */}
           {errorMsg && (
@@ -285,6 +386,8 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
           )}
 
           {/* Continue with Google SSO */}
+          {(tab === "login" || tab === "register") && (
+            <>
           <Button
             type="button"
             variant="outline"
@@ -298,7 +401,7 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
               <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
               <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
             </svg>
-            Continue with Google SSO
+            Continue with Google
           </Button>
 
           <div className="relative flex py-1 items-center">
@@ -308,12 +411,14 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
             </span>
             <div className="flex-grow border-t border-[#1E293B]"></div>
           </div>
+          </>
+          )}
 
           {/* TAB A: SIGN IN */}
           {tab === "login" && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">Official Email</label>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
                   <input
@@ -330,7 +435,7 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <label className="text-xs font-medium text-slate-300">Password</label>
-                  <button type="button" className="text-[11px] text-cyan-400 hover:underline">
+                  <button type="button" onClick={() => { setTab("forgot_password"); setResetEmail(loginEmail); setErrorMsg(null); setSuccessMsg(null); }} className="text-[11px] text-cyan-400 hover:underline">
                     Forgot password?
                   </button>
                 </div>
@@ -407,6 +512,20 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
                     onChange={(e) => setRegEmail(e.target.value)}
                     placeholder="rajesh.varma@health.gov.in"
                     className="w-full h-9 pl-9 pr-3 rounded-lg border border-[#1E293B] bg-[#0E1726] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Organisation</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={regOrganisation}
+                    onChange={(e) => setRegOrganisation(e.target.value)}
+                    placeholder="e.g. National Health Mission"
+                    className="w-full h-9 px-3 rounded-lg border border-[#1E293B] bg-[#0E1726] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
                   />
                 </div>
               </div>
@@ -515,9 +634,133 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
             </form>
           )}
 
+          {/* TAB C: FORGOT PASSWORD */}
+          {tab === "forgot_password" && (
+            <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+              <div className="text-sm text-slate-300 mb-4">
+                Enter your registered email address and we'll send you a 6-digit code to reset your password.
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                  <input
+                    type="email"
+                    required
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="officer@health.gov.in"
+                    className="w-full h-10 pl-9 pr-3 rounded-lg border border-[#1E293B] bg-[#0E1726] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+              <Button
+                type="submit"
+                disabled={isLoading || !resetEmail}
+                className="w-full h-11 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-cyan-500/20"
+              >
+                {isLoading ? "Sending..." : "Send Reset Code"}
+              </Button>
+              <button
+                type="button"
+                onClick={() => { setTab("login"); setErrorMsg(null); setSuccessMsg(null); }}
+                className="w-full text-xs text-slate-400 hover:text-white transition-colors mt-2"
+              >
+                Back to Sign In
+              </button>
+            </form>
+          )}
+
+          {/* TAB D: RESET PASSWORD */}
+          {tab === "reset_password" && (
+            <div className="space-y-4">
+              {!isCodeVerified ? (
+                <form onSubmit={handleVerifyCodeSubmit} className="space-y-4">
+                  <div className="text-sm text-slate-300 mb-4">
+                    Enter the 6-digit code sent to <strong className="text-white">{resetEmail}</strong>.
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1.5">Verification Code</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        maxLength={6}
+                        value={resetCode}
+                        onChange={(e) => setResetCode(e.target.value)}
+                        placeholder="123456"
+                        className="w-full h-10 px-3 text-center tracking-[0.5em] font-mono rounded-lg border border-[#1E293B] bg-[#0E1726] text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isLoading || resetCode.length !== 6}
+                    className="w-full h-11 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-cyan-500/20"
+                  >
+                    {isLoading ? "Verifying..." : "Verify Code"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => { setTab("login"); setErrorMsg(null); setSuccessMsg(null); }}
+                    className="w-full text-xs text-slate-400 hover:text-white transition-colors mt-2"
+                  >
+                    Back to Sign In
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-4">
+                  <div className="text-sm text-slate-300 mb-4">
+                    Code verified. Create a new password for <strong className="text-white">{resetEmail}</strong>.
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1.5">New Password</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                      <input
+                        type={showLoginPassword ? "text" : "password"}
+                        required
+                        value={resetNewPassword}
+                        onChange={(e) => setResetNewPassword(e.target.value)}
+                        placeholder="Create new password"
+                        className="w-full h-10 pl-9 pr-10 rounded-lg border border-[#1E293B] bg-[#0E1726] text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300"
+                      >
+                        {showLoginPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isLoading || resetNewPassword.length < 8}
+                    className="w-full h-11 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-cyan-500/20"
+                  >
+                    {isLoading ? "Resetting..." : "Reset Password"}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => { setTab("login"); setErrorMsg(null); setSuccessMsg(null); setIsCodeVerified(false); }}
+                    className="w-full text-xs text-slate-400 hover:text-white transition-colors mt-2"
+                  >
+                    Back to Sign In
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
+
           <div className="text-center pt-2">
-            <Link to="/command-center" className="text-xs text-slate-500 hover:text-cyan-400 transition-colors">
-              Continue as Guest / Switch Demo Persona →
+            <span className="text-xs text-slate-500 hover:text-cyan-400 transition-colors">
+              Team Theta - Code for Communities 2.0
+            </span>
+          </div>
+          <div className="flex justify-center pt-2">
+            <Link to="https://github.com/neerajojha1855/thetahealth-ai" target="_blank">
+            <GithubIcon className="h-4 w-4 text-slate-500 hover:text-cyan-400 transition-colors"/>
             </Link>
           </div>
         </div>
