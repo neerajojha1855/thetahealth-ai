@@ -1,4 +1,6 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import JSONResponse
+import logging
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -53,6 +55,28 @@ def create_application() -> FastAPI:
             "docs": f"{settings.API_V1_STR}/docs" if not is_production else "disabled",
             "status": "operational"
         }
+
+    @application.exception_handler(Exception)
+    async def global_exception_handler(request: Request, exc: Exception):
+        logging.error(f"Unhandled Exception: {exc}", exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error" if not settings.DEBUG else str(exc)}
+        )
+
+    @application.exception_handler(HTTPException)
+    async def global_http_exception_handler(request: Request, exc: HTTPException):
+        # If it's a 500 error and we are not in debug mode, hide the detail
+        if exc.status_code >= 500 and not settings.DEBUG:
+            logging.error(f"HTTP {exc.status_code} Error: {exc.detail}")
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={"detail": "Internal Server Error"}
+            )
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={"detail": exc.detail}
+        )
 
     return application
 
