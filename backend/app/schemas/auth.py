@@ -3,21 +3,21 @@ from typing import Optional, List
 from pydantic import BaseModel, EmailStr
 
 class RoleEnum(str, Enum):
-    NATIONAL_ADMIN = "NATIONAL_ADMIN"
-    STATE_DISTRICT_ADMIN = "STATE_DISTRICT_ADMIN"
-    HOSPITAL_ADMIN = "HOSPITAL_ADMIN"
-    PHC_WORKER = "PHC_WORKER"
-    DOCTOR_NURSE = "DOCTOR_NURSE"
-    PHARMACIST = "PHARMACIST"
-    SUPPLY_CHAIN_MANAGER = "SUPPLY_CHAIN_MANAGER"
-    EMERGENCY_OFFICER = "EMERGENCY_OFFICER"
-    ANALYST = "ANALYST"
+    NATIONAL_ADMIN = "National Admin"
+    STATE_DISTRICT_ADMIN = "State District Admin"
+    HOSPITAL_ADMIN = "Hospital Admin"
+    PHC_WORKER = "PHC Worker"
+    DOCTOR_NURSE = "Doctor"
+    PHARMACIST = "Pharmacist"
+    SUPPLY_CHAIN_MANAGER = "Supply Chain Manager"
+    EMERGENCY_OFFICER = "Emergency Officer"
+    ANALYST = "Analyst"
 
 class ScopeLevel(str, Enum):
-    NATIONAL = "NATIONAL"
-    STATE = "STATE"
-    DISTRICT = "DISTRICT"
-    FACILITY = "FACILITY"
+    NATIONAL = "National"
+    STATE = "State"
+    DISTRICT = "District"
+    FACILITY = "Facility"
 
 class UserProfile(BaseModel):
     uid: str
@@ -40,10 +40,10 @@ class UserRegisterRequest(BaseModel):
     password: str
     confirm_password: str
     name: str
-    designation: Optional[str] = None
-    work_location: Optional[str] = None
-    organisation: Optional[str] = None
-    role: Optional[RoleEnum] = None
+    designation: str
+    work_location: str
+    organisation: str
+    role: RoleEnum
 
 class UserLoginRequest(BaseModel):
     email: EmailStr
@@ -58,6 +58,18 @@ class ProfileUpdateRequest(BaseModel):
 
 class TokenVerifyRequest(BaseModel):
     id_token: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class VerifyResetCodeRequest(BaseModel):
+    email: EmailStr
+    code: str
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    code: str
+    new_password: str
 
 class RoleMetadata(BaseModel):
     role: RoleEnum

@@ -29,7 +29,7 @@ export function UserProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [designation, setDesignation] = useState(currentUser.title || "")
-  const [organization, setOrganization] = useState("National Health Mission (NHM)")
+  const [organization, setOrganization] = useState(currentUser.organisation || "")
   const [workLocation, setWorkLocation] = useState(currentUser.facilityName || currentUser.districtName || "")
   const [role, setRole] = useState(currentUser.role || "")
 
@@ -38,6 +38,7 @@ export function UserProfilePage() {
     if (currentUser.profile_picture && !profilePic) setProfilePic(currentUser.profile_picture)
     if (currentUser.name && !name) setName(currentUser.name)
     if (currentUser.email && !email) setEmail(currentUser.email)
+    if (currentUser.organisation && !organization) setOrganization(currentUser.organisation)
   }, [currentUser])
 
   const [isLoading, setIsLoading] = useState(false)
@@ -84,7 +85,7 @@ export function UserProfilePage() {
         if (data.email) setEmail(data.email)
         if (data.profile_picture) setProfilePic(data.profile_picture)
         if (data.designation) setDesignation(data.designation)
-        if (data.organization) setOrganization(data.organization)
+        if (data.organisation) setOrganization(data.organisation)
         if (data.work_location) setWorkLocation(data.work_location)
         if (data.role) setRole(data.role)
       }
@@ -184,7 +185,7 @@ export function UserProfilePage() {
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
               <h2 className="text-xl font-bold text-white">{name || "Healthcare Officer"}</h2>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800">
-                {role || "DOCTOR_NURSE"}
+                {role || "Doctor"}
               </span>
             </div>
             <p className="text-xs text-slate-400">{designation} · {organization}</p>

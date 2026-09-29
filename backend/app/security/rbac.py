@@ -85,9 +85,9 @@ async def get_current_user(
             role = RoleEnum(x_demo_role)
             scope = ScopeLevel.FACILITY if role in [RoleEnum.PHC_WORKER, RoleEnum.HOSPITAL_ADMIN, RoleEnum.PHARMACIST, RoleEnum.DOCTOR_NURSE] else ScopeLevel.NATIONAL
             return UserProfile(
-                uid=f"demo-{role.value.lower()}",
-                email=f"{role.value.lower()}@thetahealth.gov",
-                name=f"Demo {role.value.replace('_', ' ').title()}",
+                uid=f"demo-{role.value.lower().replace(' ', '-')}",
+                email=f"{role.value.lower().replace(' ', '_')}@thetahealth.gov",
+                name=f"Demo {role.value.title()}",
                 role=role,
                 scope_level=scope,
                 state_id="ST-UP-01",

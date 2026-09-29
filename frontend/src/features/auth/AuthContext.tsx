@@ -3,15 +3,15 @@ import { auth } from "@/lib/firebase"
 import { onAuthStateChanged, User as FirebaseUser, signOut } from "firebase/auth"
 
 export type RoleType =
-  | "NATIONAL_ADMIN"
-  | "STATE_DISTRICT_ADMIN"
-  | "HOSPITAL_ADMIN"
-  | "PHC_WORKER"
-  | "DOCTOR_NURSE"
-  | "PHARMACIST"
-  | "SUPPLY_CHAIN_MANAGER"
-  | "EMERGENCY_OFFICER"
-  | "ANALYST"
+  | "National Admin"
+  | "State District Admin"
+  | "Hospital Admin"
+  | "PHC Worker"
+  | "Doctor"
+  | "Pharmacist"
+  | "Supply Chain Manager"
+  | "Emergency Officer"
+  | "Analyst"
 
 export interface UserPersona {
   role: RoleType
@@ -23,10 +23,11 @@ export interface UserPersona {
   districtName?: string
   stateName?: string
   profile_picture?: string
+  organisation?: string
 }
 
-const DEFAULT_GUEST: UserPersona = {
-  role: "PHC_WORKER",
+  const DEFAULT_GUEST: UserPersona = {
+  role: "PHC Worker",
   title: "Guest",
   name: "Not Authenticated",
   email: "",
@@ -62,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (res.ok) {
             const data = await res.json();
             setCurrentUser({
-              role: data.role || "PHC_WORKER",
+              role: data.role || "PHC Worker",
               title: data.designation || "Healthcare Officer",
               name: data.name || user.displayName || "Authenticated User",
               email: data.email || user.email || "",
@@ -70,11 +71,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               profile_picture: data.profile_picture || user.photoURL || undefined,
               facilityName: data.work_location,
               districtName: data.work_location,
+              organisation: data.organisation,
             });
           } else {
             // Fallback
             setCurrentUser({
-              role: "PHC_WORKER",
+              role: "PHC Worker",
               title: "Healthcare Officer",
               name: user.displayName || "Authenticated User",
               email: user.email || "",
@@ -85,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (e) {
           // Fallback
           setCurrentUser({
-            role: "PHC_WORKER",
+            role: "PHC Worker",
             title: "Healthcare Officer",
             name: user.displayName || "Authenticated User",
             email: user.email || "",

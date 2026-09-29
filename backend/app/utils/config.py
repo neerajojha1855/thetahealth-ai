@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     VERTEX_LOCATION: str
     OLLAMA_MODEL_NAME: str
     OLLAMA_BASE_URL: str
+    RESEND_API_KEY: Optional[str] = None
 
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = [
