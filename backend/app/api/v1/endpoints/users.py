@@ -40,7 +40,7 @@ async def register_user(payload: UserRegisterRequest):
                 "uid": uid,
                 "email": payload.email,
                 "name": payload.name,
-                "role": payload.role.value if payload.role else RoleEnum.PHC_WORKER.value,
+                "role": payload.role.value,
                 "scope_level": ScopeLevel.FACILITY.value,
                 "profile_picture": None,
                 "designation": payload.designation,
