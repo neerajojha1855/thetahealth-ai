@@ -27,7 +27,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/
 export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "register" }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { switchRole } = useAuth()
   
   const [tab, setTab] = useState<"login" | "register">(
     (searchParams.get("tab") as "login" | "register") || initialTab
@@ -76,16 +75,9 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
       // We will sync with the backend just like Google SSO to be safe, or just store the token.
       localStorage.setItem("theta_token", idToken)
       
-      // Fetch backend user data to update role if needed
-      const response = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${idToken}` }
-      })
-      if (response.ok) {
-        const data = await response.json()
-        if (data.role && switchRole) {
-          switchRole(data.role)
-        }
-      }
+      // Auth state will sync automatically via Firebase
+      
+
 
       navigate("/command-center")
     } catch (err: any) {
@@ -133,16 +125,9 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
       const idToken = await userCredential.user.getIdToken();
       localStorage.setItem("theta_token", idToken);
 
-      // Fetch user profile to get the role
-      const meRes = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers: { Authorization: `Bearer ${idToken}` }
-      })
-      if (meRes.ok) {
-        const meData = await meRes.json()
-        if (meData.role && switchRole) {
-          switchRole(meData.role)
-        }
-      }
+      // Auth state will sync automatically via Firebase
+
+
 
       setTimeout(() => {
         navigate("/command-center")
