@@ -29,6 +29,7 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
         "https://thetahealth001.firebaseapp.com",
         "https://thetahealth001.web.app",
+        "https://thetahealth-ai.vercel.app",
     ]
 
     model_config = {
