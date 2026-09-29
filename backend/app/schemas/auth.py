@@ -40,6 +40,10 @@ class UserRegisterRequest(BaseModel):
     password: str
     confirm_password: str
     name: str
+    designation: Optional[str] = None
+    work_location: Optional[str] = None
+    organisation: Optional[str] = None
+    role: Optional[RoleEnum] = None
 
 class UserLoginRequest(BaseModel):
     email: EmailStr

@@ -40,12 +40,12 @@ async def register_user(payload: UserRegisterRequest):
                 "uid": uid,
                 "email": payload.email,
                 "name": payload.name,
-                "role": RoleEnum.PHC_WORKER.value, # Default role
+                "role": payload.role.value if payload.role else RoleEnum.PHC_WORKER.value,
                 "scope_level": ScopeLevel.FACILITY.value,
                 "profile_picture": None,
-                "designation": None,
-                "organisation": None,
-                "work_location": None
+                "designation": payload.designation,
+                "organisation": payload.organisation,
+                "work_location": payload.work_location
             }
             db.collection("users").document(uid).set(user_doc)
             

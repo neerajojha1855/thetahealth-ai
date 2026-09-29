@@ -60,6 +60,14 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
   const passwordsMatch = regPassword.length > 0 && regPassword === regConfirmPassword
   const isRegisterValid = hasMinLength && hasUppercase && hasNumber && hasSpecial && passwordsMatch && regEmail && regName
 
+  const mapDesignationToRole = (designation: string) => {
+    if (designation === "Chief Pharmacist") return "PHARMACIST";
+    if (designation === "District Health Officer") return "STATE_DISTRICT_ADMIN";
+    if (designation === "Supply Chain Lead") return "SUPPLY_CHAIN_MANAGER";
+    if (designation === "PHC Nurse/Worker") return "PHC_WORKER";
+    return "DOCTOR_NURSE"; // Medical Officer default
+  };
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrorMsg(null)
@@ -107,8 +115,8 @@ export function AuthPage({ initialTab = "login" }: { initialTab?: "login" | "reg
           name: regName,
           designation: regDesignation,
           work_location: regFacility,
-          organization: "National Health Mission",
-          role: "DOCTOR_NURSE"
+          organisation: "National Health Mission (NHM)",
+          role: mapDesignationToRole(regDesignation)
         })
       })
 
