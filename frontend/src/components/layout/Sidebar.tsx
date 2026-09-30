@@ -1,4 +1,6 @@
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
+import { useAuth } from "@/features/auth/AuthContext"
+import { Button } from "@/components/ui/button"
 import {
   LayoutDashboard,
   Activity,
@@ -14,9 +16,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
+  Shield,
+  LogOut,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface NavItem {
   title: string
@@ -86,16 +90,85 @@ const navItems: NavItem[] = [
   },
 ]
 
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false)
+interface SidebarProps {
+  isMobile: boolean
+  isMobileSidebarOpen: boolean
+  onToggleMobileSidebar: () => void
+  isDesktopSidebarCollapsed: boolean
+  onToggleDesktopSidebarCollapsed: () => void
+}
+
+export function Sidebar({
+  isMobile,
+  isMobileSidebarOpen,
+  onToggleMobileSidebar,
+  isDesktopSidebarCollapsed,
+  onToggleDesktopSidebarCollapsed
+}: SidebarProps) {
+  // State for desktop sidebar collapse (icon-only vs full text)
+  const [collapsed, setCollapsed] = useState(isDesktopSidebarCollapsed);
+
+  // Sync the collapsed state with the prop from AppLayout (if changed from outside)
+  // We'll use useEffect to update the local state when the prop changes
+  // Note: We also have a button in the sidebar that can change the collapsed state (for desktop)
+  useEffect(() => {
+    setCollapsed(isDesktopSidebarCollapsed);
+  }, [isDesktopSidebarCollapsed]);
 
   return (
-    <aside
-      className={cn(
-        "relative flex flex-col border-r border-slate-800/80 bg-slate-950/90 backdrop-blur-xl transition-all duration-300 z-30",
-        collapsed ? "w-18" : "w-64"
+    <>
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && isMobileSidebarOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-slate-950/20 backdrop-blur-sm z-20"
+            onClick={onToggleMobileSidebar}
+          />
+          <div className="fixed left-0 top-0 h-screen w-64 bg-slate-950/90 backdrop-blur-xl border-r border-slate-800/80 z-30 transition-transform duration-300 transform translate-x-0">
+            <SidebarContent
+              collapsed={false} /* On mobile, we always show the full text when open */
+              onToggleCollapsed={onToggleMobileSidebar} /* This closes the mobile sidebar */
+              isMobile={true}
+            />
+          </div>
+        </>
       )}
-    >
+
+      {/* Desktop Sidebar (always visible, but can be collapsed/icon-only) */}
+      {!isMobile && (
+        <aside
+          className={cn(
+            "relative flex flex-col border-r border-slate-800/80 bg-slate-950/90 backdrop-blur-xl transition-all duration-300 z-30",
+            collapsed ? "w-18" : "w-64"
+          )}
+        >
+          <SidebarContent
+            collapsed={collapsed}
+            onToggleCollapsed={() => setCollapsed(!collapsed)}
+            isMobile={false}
+          />
+        </aside>
+      )}
+    </>
+  );
+}
+
+interface SidebarContentProps {
+  collapsed: boolean
+  onToggleCollapsed: () => void
+  isMobile: boolean
+}
+
+function SidebarContent({
+  collapsed,
+  onToggleCollapsed,
+  isMobile
+}: SidebarContentProps) {
+  const { currentUser, firebaseUser, logout } = useAuth()
+  const navigate = useNavigate()
+
+  return (
+    <>
       {/* Brand Header */}
       <div className="flex h-16 items-center justify-between px-4 border-b border-slate-800/80">
         {!collapsed ? (
@@ -123,17 +196,31 @@ export function Sidebar() {
           </div>
         )}
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="hidden md:flex h-7 w-7 items-center justify-center rounded-md border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
+        {/* Mobile: Close button */}
+        {isMobile && (
+          <button
+            onClick={onToggleCollapsed}
+            className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+            title="Close sidebar"
+          >
             <ChevronLeft className="h-4 w-4" />
-          )}
-        </button>
+          </button>
+        )}
+
+        {/* Desktop: Collapse/Expand button (only visible on md and up) */}
+        {!isMobile && (
+          <button
+            onClick={onToggleCollapsed}
+            className="hidden md:flex h-7 w-7 items-center justify-center rounded-md border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </button>
+        )}
       </div>
 
       {/* Nav list */}
@@ -181,7 +268,7 @@ export function Sidebar() {
       </div>
 
       {/* Security & System Info Footer */}
-      {!collapsed ? (
+      {!collapsed && (
         <div className="p-3 m-3 rounded-xl border border-slate-800/80 bg-slate-900/50">
           <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium">
             <ShieldCheck className="h-4 w-4 text-emerald-400" />
@@ -191,7 +278,49 @@ export function Sidebar() {
             Decision-Support Active
           </p>
         </div>
-      ) : null}
-    </aside>
-  )
+      )}
+
+      {/* Profile & Auth Section (Moved from Header) */}
+      <div className={cn("p-4 border-t border-slate-800/80 mt-auto", collapsed ? "flex flex-col gap-3 items-center" : "flex items-center justify-between")}>
+        <button
+          onClick={() => navigate("/profile")}
+          className={cn(
+            "group flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-cyan-500/50 hover:bg-slate-900 transition-all text-left",
+            collapsed ? "p-1.5" : "pl-1.5 pr-2 py-1.5 flex-1"
+          )}
+          title="View & Edit Profile"
+        >
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-tr from-cyan-600/30 to-slate-800 border border-cyan-500/30 flex shrink-0 items-center justify-center text-cyan-300 group-hover:scale-105 transition-transform">
+            <Shield className="h-4 w-4" />
+          </div>
+          {!collapsed && (
+            <div className="text-left overflow-hidden">
+              <div className="text-xs font-semibold text-slate-200 truncate">
+                {currentUser?.title || "User"}
+              </div>
+              <p className="text-[10px] text-slate-400 truncate">{currentUser?.name}</p>
+            </div>
+          )}
+        </button>
+
+        {firebaseUser && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              await logout()
+              navigate("/login")
+            }}
+            className={cn(
+              "h-9 w-9 p-0 text-slate-400 hover:text-rose-500 hover:border-rose-500/50 hover:bg-rose-500/10 border border-slate-800/80 rounded-lg flex shrink-0 items-center justify-center transition-colors",
+              !collapsed && "ml-2"
+            )}
+            title="Log Out"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+    </>
+  );
 }
