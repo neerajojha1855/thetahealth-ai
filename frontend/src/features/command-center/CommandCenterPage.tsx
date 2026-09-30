@@ -34,7 +34,7 @@ export function CommandCenterPage() {
       {/* Top Welcome / Executive ThetaBrief Banner */}
       <div className="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-slate-900/90 via-slate-900/70 to-cyan-950/30 p-6 md:p-8 backdrop-blur-xl shadow-2xl">
         <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 relative z-10">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2">
               <Badge variant="ai" className="gap-1 px-2 py-0.5">
@@ -45,7 +45,7 @@ export function CommandCenterPage() {
                 Synced {lastSync.toLocaleTimeString()}
               </span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-white">
               National Healthcare Command Center
             </h1>
             <p className="text-sm text-slate-300 leading-relaxed">
